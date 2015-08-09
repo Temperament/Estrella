@@ -101,7 +101,6 @@ namespace Zepheus.Login.Handlers
                                 pClient.IsAuthenticated = true;
                                 pClient.Admin = 0; /*(byte)row["Admin"];*/
                                 pClient.AccountID = int.Parse(row["id"].ToString());
-                                AllowFiles(pClient, true);
                                 WorldList(pClient, false);
                             }
                         }
@@ -132,9 +131,7 @@ namespace Zepheus.Login.Handlers
                 SendFailedLogin(pClient, ServerError.Exception);
             }
             else
-            {
-                //allowfiles here fucks shit up?
-            }
+                AllowFiles(pClient, true);
         }
 
         [PacketHandler(CH3Type.WorldSelect)]
