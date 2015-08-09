@@ -22,7 +22,7 @@ namespace Zepheus.Login.Handlers
                 pClient.Disconnect();
                 return;
             }
-            Log.WriteLine(LogLevel.Debug, "Client version {0}:{1}.", year, version);
+            Log.WriteLine(LogLevel.Debug, "Client version authenticated - Year: {0} Version: {1}.", year, version);
             using (Packet response = new Packet(SH3Type.VersionAllowed))
             {
                 response.WriteShort(1);
@@ -33,29 +33,30 @@ namespace Zepheus.Login.Handlers
         [PacketHandler(CH3Type.Login)]
         public static void Login(LoginClient pClient, Packet pPacket)
         {
-            string md5 = pPacket.ReadStringForLogin(34);
+            int packetLength = 316;
+            int loginLength = 17 + 1;
+            int passwordLength = 32 + 1;
+
+            string md5 = pPacket.ReadStringForLogin(packetLength);
             char[] tmpUserAndPass = md5.ToCharArray();
+            string username = "";
             string clientPassword = "";
 
-            string username = "";
-
-            for (int i = 0; i < 18; i++)
-            {
+            // Read from 0 --> 17
+            for (int i = 0; i < loginLength; i++)
                 username += tmpUserAndPass[i].ToString().Replace("\0", "");
-            }
-            for (int i = 18; i < 34; i++)
-            {
-                //is not hash is password from client
 
+            // Read from 260 --> 292
+            for (int i = 260; i < 260 + passwordLength; i++)
                 clientPassword += tmpUserAndPass[i].ToString().Replace("\0", "");
-            }
+
             Log.WriteLine(LogLevel.Debug, "{0} tries to login.", username);
 
             bool banned = false;
             DataTable loginData = null;
             using (DatabaseClient dbClient = Program.DatabaseManager.GetClient())
             {
-                loginData = dbClient.ReadDataTable("SELECT `ID`, `Username`, `Password`, `Admin`, `Blocked` FROM accounts WHERE Username= '" + username + "'");
+                loginData = dbClient.ReadDataTable("SELECT * FROM accounts WHERE Username= '" + username + "'");
             }
             if (loginData != null)
             {
@@ -85,7 +86,7 @@ namespace Zepheus.Login.Handlers
                             {
                                 pClient.Username = uIsername;
                                 pClient.IsAuthenticated = true;
-                                pClient.Admin = (byte)row["Admin"];
+                                pClient.Admin = 0; /*(byte)row["Admin"];*/
                                 pClient.AccountID = int.Parse(row["ID"].ToString());
                                 AllowFiles(pClient, true);
                                 WorldList(pClient, false);
