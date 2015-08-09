@@ -47,6 +47,7 @@ namespace Zepheus.Login.Networking
             }
             else
             {
+                Log.WriteLine(LogLevel.Debug, "Header:{0} -> Type:{1}", e.Packet.Header, e.Packet.Type);
                 Log.WriteLine(LogLevel.Debug, "Unhandled packet: {0}", e.Packet);
             }
         }
