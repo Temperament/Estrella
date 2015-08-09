@@ -33,48 +33,61 @@ namespace Zepheus.Login.Handlers
         [PacketHandler(CH3Type.Login)]
         public static void Login(LoginClient pClient, Packet pPacket)
         {
+            // Initialize DB
+            DatabaseClient dbClient = Program.DatabaseManager.GetClient();
+
+            // Define packet lengths, as these may change with client updates
             int packetLength = 316;
             int loginLength = 17 + 1;
             int passwordLength = 32 + 1;
 
             string md5 = pPacket.ReadStringForLogin(packetLength);
-            char[] tmpUserAndPass = md5.ToCharArray();
+            char[] md5Char = md5.ToCharArray();
             string username = "";
             string clientPassword = "";
 
             // Read from 0 --> 17
             for (int i = 0; i < loginLength; i++)
-                username += tmpUserAndPass[i].ToString().Replace("\0", "");
+                username += md5Char[i].ToString().Replace("\0", "");
 
             // Read from 260 --> 292
             for (int i = 260; i < 260 + passwordLength; i++)
-                clientPassword += tmpUserAndPass[i].ToString().Replace("\0", "");
+                clientPassword += md5Char[i].ToString().Replace("\0", "");
 
             Log.WriteLine(LogLevel.Debug, "{0} tries to login.", username);
 
-            bool banned = false;
             DataTable loginData = null;
-            using (DatabaseClient dbClient = Program.DatabaseManager.GetClient())
-            {
+
+            using (dbClient)
                 loginData = dbClient.ReadDataTable("SELECT * FROM accounts WHERE Username= '" + username + "'");
+
+            // Auto account creation if no username found
+            if (loginData.Rows.Count == 0)
+            {
+                dbClient.ExecuteQuery("INSERT INTO accounts (username, password) VALUES ('" + username + "','" + clientPassword + "')");
+
+                using (dbClient)
+                    loginData = dbClient.ReadDataTable("SELECT * FROM accounts WHERE Username= '" + username + "'");
             }
+
             if (loginData != null)
             {
                 if (loginData.Rows.Count > 0)
                 {
                     foreach (DataRow row in loginData.Rows)
                     {
-                        string uIsername = (string)row["Username"];
-                        string password = (string)row["Password"];
-                        if (password == clientPassword)
-                        {
+                        string uIsername = (string)row["username"];
+                        string password = (string)row["password"];
+                        bool banned = Database.DataStore.ReadMethods.EnumToBool(row["banned"].ToString());
 
-                            banned = Database.DataStore.ReadMethods.EnumToBool(row["Blocked"].ToString());
-                            if (banned == true)
+                        if (clientPassword == password)
+                        {
+                            if (banned)
                             {
                                 SendFailedLogin(pClient, ServerError.Blocked);
-
+                                Log.WriteLine(LogLevel.Debug, "Banned user - {0} tries to login.", username);
                             }
+
                             else if (ClientManager.Instance.IsLoggedIn(uIsername))
                             {
                                 Log.WriteLine(LogLevel.Warn, "{0} is trying dual login. Disconnecting.", uIsername);
@@ -87,20 +100,14 @@ namespace Zepheus.Login.Handlers
                                 pClient.Username = uIsername;
                                 pClient.IsAuthenticated = true;
                                 pClient.Admin = 0; /*(byte)row["Admin"];*/
-                                pClient.AccountID = int.Parse(row["ID"].ToString());
+                                pClient.AccountID = int.Parse(row["id"].ToString());
                                 AllowFiles(pClient, true);
                                 WorldList(pClient, false);
                             }
                         }
                         else
-                        {
                             SendFailedLogin(pClient, ServerError.InvalidCredentials);
-                        }
                     }
-                }
-                else
-                {
-                    SendFailedLogin(pClient, ServerError.DatabaseError);
                 }
             }
         }
