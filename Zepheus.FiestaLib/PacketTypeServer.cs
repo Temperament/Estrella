@@ -32,7 +32,7 @@ namespace Zepheus.FiestaLib
     public enum SH3Type : byte
     {
         IncorrectVersion = 2, //please update client
-        VersionAllowed = 3,
+        VersionAllowed = 103,
         FilecheckAllow = 5,
         Error = 9,
         WorldlistNew = 10,
