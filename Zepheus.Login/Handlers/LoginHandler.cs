@@ -36,25 +36,36 @@ namespace Zepheus.Login.Handlers
             // Initialize DB
             DatabaseClient dbClient = Program.DatabaseManager.GetClient();
 
+            // XX XX XX XX XX XX XX XX XX XX XX - login length
+            // 00 00 00 00 00 00 00 - space 
+            // XX XX XX XX XX XX XX - password
+            // 00 00 00 00 00 00 00 00 00 4F 72 69 67 69 6E 61 6C 00 00 00 00 00 00 00 00 00 00 00
+
             // Define packet lengths, as these may change with client updates
-            int packetLength = 316;
-            int loginLength = 17 + 1;
-            int passwordLength = 32 + 1;
+            int packetLength = 54;
+
+            int loginBlock = 11;
+            int spaceLength = 7;
+            int passwordBlock = 7;
 
             string md5 = pPacket.ReadStringForLogin(packetLength);
             char[] md5Char = md5.ToCharArray();
             string username = "";
             string clientPassword = "";
 
-            // Read from 0 --> 17
-            for (int i = 0; i < loginLength; i++)
+            // TODO - Escape these before query processing
+
+            // Read from 0 --> 11
+            for (int i = 0; i <= loginBlock; i++)
                 username += md5Char[i].ToString().Replace("\0", "");
 
-            // Read from 260 --> 292
-            for (int i = 260; i < 260 + passwordLength; i++)
+            Log.WriteLine(LogLevel.Debug, "{0} tries to login.", username);
+
+            // Read from 18 --> onwards
+            for (int i = loginBlock + spaceLength; i <= loginBlock + spaceLength + passwordBlock; i++)
                 clientPassword += md5Char[i].ToString().Replace("\0", "");
 
-            Log.WriteLine(LogLevel.Debug, "{0} tries to login.", username);
+            Log.WriteLine(LogLevel.Debug, "{0} tries to login.", clientPassword);
 
             DataTable loginData = null;
 

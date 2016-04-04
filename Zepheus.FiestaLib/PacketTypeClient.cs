@@ -10,9 +10,10 @@ namespace Zepheus.FiestaLib
     public enum CH3Type : byte
     {
         Version = 101,
-        Login = 90,
-        WorldReRequest = 27,
+        Login = 56,
         FileHash = 4,
+
+        WorldReRequest = 27,
         WorldSelect = 11,
         //Actually used in World
         WorldClientKey = 15,
