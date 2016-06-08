@@ -31,7 +31,7 @@ namespace Zepheus.World.Handlers
         {
             string name;
             byte slot, jobGender, hair, color, style;
-            if (!packet.TryReadByte(out slot) || !packet.TryReadString(out name, 16) ||
+            if (!packet.TryReadByte(out slot) || !packet.TryReadString(out name, 20) ||
                 !packet.TryReadByte(out jobGender) || !packet.TryReadByte(out hair) ||
                 !packet.TryReadByte(out color) || !packet.TryReadByte(out style))
             {
