@@ -1,0 +1,13 @@
+﻿<Properties>
+  <StartupItems>
+    <String>Estrella.Login\Estrella.Login.csproj</String>
+    <String>Estrella.Zone\Estrella.Zone.csproj</String>
+    <String>Estrella.World\Estrella.World.csproj</String>
+  </StartupItems>
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.Workbench />
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+</Properties>
